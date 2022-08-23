@@ -1,0 +1,11 @@
+apiVersion: sealer.aliyun.com/v1alpha1
+kind: Plugin
+metadata:
+  name: OpenYurtConfigurationPlugin
+spec:
+  type: SHELL
+  action: PreGuest
+  'on': master
+  data: |
+    # Label each master
+    kubectl label node $HOSTNAME openyurt.io/is-edge-worker=false

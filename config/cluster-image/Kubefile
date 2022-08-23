@@ -1,0 +1,26 @@
+FROM kubernetes:v1.21.14-alpine
+
+## flannel
+RUN wget https://aliacs-edge-k8s-cn-hangzhou.oss-cn-hangzhou.aliyuncs.com/public/pkg/openyurt/cni/v0.8.0/cni-plugins-linux-amd64-v0.8.0.tgz \
+  && mkdir cni \
+  && tar -xf cni-plugins-linux-amd64-v0.8.0.tgz -C cni/
+
+COPY init-kube.sh /scripts/
+COPY kube-flannel.yaml manifests/
+
+## helm
+RUN wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz \
+    && tar zxvf helm-v3.6.0-linux-amd64.tar.gz && cp linux-amd64/helm /usr/bin \
+    && chmod +x /usr/bin/helm
+
+# openyurt
+COPY openyurt-plugin.yaml plugins
+COPY coredns.yaml manifests
+COPY yurt-yamls/* manifests
+
+COPY install.sh .
+COPY kube-apiserver.sh .
+COPY kube-controller-manager.sh .
+RUN chmod 777 install.sh kube-apiserver.sh kube-controller-manager.sh
+
+CMD ./install.sh
