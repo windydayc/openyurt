@@ -55,7 +55,7 @@ const (
 	TmpDownloadDir = "/tmp"
 
 	SealerUrlFormat      = "https://github.com/alibaba/sealer/releases/download/%s/sealer-%s-linux-%s.tar.gz"
-	DefaultSealerVersion = "v0.6.1"
+	DefaultSealerVersion = "v0.8.5"
 
 	InitClusterImage = "%s/openyurt-cluster:%s"
 	SealerRunCmd     = "sealer apply -f %s/Clusterfile"
@@ -67,10 +67,8 @@ metadata:
   name: my-cluster
 spec:
   hosts:
-  - ips:
-    - {{.apiserver_address}}
-    roles:
-    - master
+  - ips: [ {{.apiserver_address}} ]
+    roles: [ master ]
   image: {{.cluster_image}}
   ssh:
     passwd: {{.passwd}}
@@ -78,28 +76,24 @@ spec:
     user: root
   env:
   - YurttunnelServerAddress={{.yurttunnel_server_address}}
+
 ---
-apiVersion: sealer.cloud/v2
-kind: KubeadmConfig
-metadata:
-  name: default-kubernetes-config
-spec:
-  networking:
-    {{if .pod_subnet }}
-    podSubnet: {{.pod_subnet}}
-    {{end}}
-    {{if .service_subnet}}
-    serviceSubnet: {{.service_subnet}}
-    {{end}}
-  controllerManager:
-    extraArgs:
-      controllers: -nodelifecycle,*,bootstrapsigner,tokencleaner
+
+## Custom configurations must specify kind, will be merged to default kubeadm configs
+kind: ClusterConfiguration
+networking:
+  {{if .pod_subnet }}
+  podSubnet: {{.pod_subnet}}
+  {{end}}
+  {{if .service_subnet}}
+  serviceSubnet: {{.service_subnet}}
+  {{end}}
 `
 )
 
 var (
 	ValidSealerVersions = []string{
-		"v0.6.1",
+		"v0.8.5",
 	}
 )
 

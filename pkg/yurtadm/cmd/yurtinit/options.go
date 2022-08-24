@@ -19,6 +19,7 @@ package yurtinit
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -44,8 +45,14 @@ func NewInitOptions() *InitOptions {
 }
 
 func (o *InitOptions) Validate() error {
-	if err := validateServerAddress(o.AdvertiseAddress); err != nil {
-		return err
+	// There can be multiple master ip addresses, separated by commas.
+	if o.AdvertiseAddress != "" {
+		ipArray := strings.Split(o.AdvertiseAddress, ",")
+		for _, ip := range ipArray {
+			if err := validateServerAddress(ip); err != nil {
+				return err
+			}
+		}
 	}
 	if o.YurttunnelServerAddress != "" {
 		if err := validateServerAddress(o.YurttunnelServerAddress); err != nil {

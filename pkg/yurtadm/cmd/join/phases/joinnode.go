@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -168,8 +169,20 @@ func addYurthubStaticYaml(data joindata.YurtJoinData, podManifestPath string) er
 		}
 	}
 
+	// There can be multiple master IP addresses
+	// convert
+	// 1.2.3.4:6443,1.2.3.5:6443
+	// to
+	// https://1.2.3.4:6443,https://1.2.3.5:6443
+	serverAddrs := strings.Split(data.ServerAddr(), ",")
+	for i := 0; i < len(serverAddrs); i++ {
+		serverAddrs[i] = fmt.Sprintf("https://%s", serverAddrs[i])
+	}
+
+	kubernetesServerAddrs := strings.Join(serverAddrs, ",")
+
 	ctx := map[string]string{
-		"kubernetesServerAddr": fmt.Sprintf("https://%s", data.ServerAddr()),
+		"kubernetesServerAddr": kubernetesServerAddrs,
 		"image":                data.YurtHubImage(),
 		"joinToken":            data.JoinToken(),
 		"workingMode":          data.NodeRegistration().WorkingMode,
