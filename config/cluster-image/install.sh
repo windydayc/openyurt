@@ -14,39 +14,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo ">>>>>>>>>>>>>>>>>>> Start installing OpenYurt <<<<<<<<<<<<<<<<<<<"
+echo "[INFO] Start installing OpenYurt"
 
-echo ">>>>>>>>>>>>>>>>>>> Setup flannel <<<<<<<<<<<<<<<<<<<"
+echo "[INFO] Setup flannel"
 kubectl apply -f manifests/kube-flannel.yaml
 
-echo ">>>>>>>>>>>>>>>>>>> Setup yurt-controller-manager <<<<<<<<<<<<<<<<<<<"
+echo "[INFO] Setup yurt-controller-manager"
 kubectl apply -f manifests/yurt-controller-manager.yaml
 
-echo ">>>>>>>>>>>>>>>>>>> Setup yurt-tunnel <<<<<<<<<<<<<<<<<<<"
+echo "[INFO] Setup yurt-tunnel"
 kubectl apply -f manifests/yurt-tunnel-server.yaml
 kubectl apply -f manifests/yurt-tunnel-agent.yaml
 kubectl apply -f manifests/yurt-tunnel-dns.yaml
 
-echo ">>>>>>>>>>>>>>>>>>> Setup yurt-app-manager <<<<<<<<<<<<<<<<<<<"
-helm repo add openyurt https://openyurtio.github.io/openyurt-helm \
-  && helm repo update \
-  && helm upgrade --install yurt-app-manager openyurt/yurt-app-manager
+echo "[INFO] Setup yurt-app-manager"
+kubectl apply -f manifests/all_in_one.yaml
 
-echo ">>>>>>>>>>>>>>>>>>> Setup Yurthub Settings <<<<<<<<<<<<<<<<<<<"
+echo "[INFO] Setup Yurthub Settings"
 kubectl apply -f manifests/yurthub-cfg.yaml
 
-echo ">>>>>>>>>>>>>>>>>>> Adjust coreDNS <<<<<<<<<<<<<<<<<<<"
+echo "[INFO] Adjust coreDNS"
 kubectl apply -f manifests/coredns.yaml
 kubectl scale --replicas=0 deployment/coredns -n kube-system
 kubectl annotate svc kube-dns -n kube-system openyurt.io/topologyKeys='openyurt.io/nodepool'
 
-echo ">>>>>>>>>>>>>>>>>>> Adjust kube-proxy <<<<<<<<<<<<<<<<<<<"
+echo "[INFO] Adjust kube-proxy"
 kubectl get cm -n kube-system kube-proxy -oyaml | sed 's|kubeconfig: \/var\/lib\/kube-proxy\/kubeconfig.conf|#kubeconfig: \/var\/lib\/kube-proxy\/kubeconfig.conf|g' - | kubectl apply -f -
 
-echo ">>>>>>>>>>>>>>>>>>> Adjust kube-controller-manager <<<<<<<<<<<<<<<<<<<"
+echo "[INFO] Adjust kube-controller-manager"
 ./kube-controller-manager.sh
 
-echo ">>>>>>>>>>>>>>>>>>> Adjust kube-apiserver <<<<<<<<<<<<<<<<<<<"
+echo "[INFO] Adjust kube-apiserver"
 ./kube-apiserver.sh
 
-echo ">>>>>>>>>>>>>>>>>>> [INFO] OpenYurt is successfully installed <<<<<<<<<<<<<<<<<<<"
+echo "[INFO] OpenYurt is successfully installed"

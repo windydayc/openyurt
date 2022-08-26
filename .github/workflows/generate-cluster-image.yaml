@@ -2,7 +2,7 @@ name: Generate OpenYurt Cluster Image
 
 on:
   push:
-    branches: [ "master", "action" ]
+    branches: [ "buildimage" ]
     paths:
       - 'config/setup/*'
       - 'config/cluster-image/*'
@@ -35,6 +35,7 @@ jobs:
           cp config/setup/yurt-tunnel-dns.yaml context/yurt-yamls
           cp config/setup/yurt-tunnel-server.yaml context/yurt-yamls
           cp config/setup/yurthub-cfg.yaml context/yurt-yamls
+          cp config/setup/all_in_one.yaml context/yurt-yamls
 
       - name: Check Context Working-directory
         working-directory: src/github.com/openyurtio/openyurt/context
@@ -44,16 +45,10 @@ jobs:
 
       - name: Build Cluster Image
         working-directory: src/github.com/openyurtio/openyurt/context
-        run: sudo sealer build -t oy-test:latest -f Kubefile .
+        run: sudo sealer build -t oy:latest -f Kubefile .
 
       - name: Push Cluster Image to Dockerhub
         run: |
           sudo sealer login registry-1.docker.io -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-          sudo sealer tag oy-test:latest registry-1.docker.io/${{ secrets.DOCKERHUB_USERNAME }}/oy-test:latest
-          sudo sealer push registry-1.docker.io/${{ secrets.DOCKERHUB_USERNAME }}/oy-test:latest
-
-      - name: Push Cluster Image to Ali Registry
-        run: |
-          sudo sealer login ${{ env.ALI_REGISTRY }} -u ${{ secrets.ALI_REGISTRY_USERNAME }} -p ${{ secrets.ALI_REGISTRY_PASSWORD }}
-          sudo sealer tag oy-test:latest ${{ env.ALI_REGISTRY }}/${{ secrets.ALI_REGISTRY_USERNAME }}/oy-test:latest
-          sudo sealer push ${{ env.ALI_REGISTRY }}/${{ secrets.ALI_REGISTRY_USERNAME }}/oy-test:latest
+          sudo sealer tag oy-test:latest registry-1.docker.io/${{ secrets.DOCKERHUB_USERNAME }}/oy:latest
+          sudo sealer push registry-1.docker.io/${{ secrets.DOCKERHUB_USERNAME }}/oy:latest
